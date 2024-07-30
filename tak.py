@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import io
+import csv
 
 st.title('Aplikasi Pengolahan TAK')
 
@@ -36,11 +37,23 @@ def format_kelompok(kelompok):
 # File upload
 uploaded_files = st.file_uploader("Unggah file CSV", accept_multiple_files=True)
 
-if uploaded_files:
-    # Read CSV files
-    dfs = {}
-    for file in uploaded_files:
-        df = pd.read_csv(file, delimiter=';', low_memory=False)
+def detect_delimiter(file):
+    sample = file.read(1024)  # Baca sebagian kecil dari file untuk deteksi
+    file.seek(0)  # Kembalikan pointer file ke awal
+    sniffer = csv.Sniffer()
+    delimiter = sniffer.sniff(sample).delimiter
+    return delimiter
+
+def read_csv_with_detected_delimiter(file):
+    delimiter = detect_delimiter(file)
+    df = pd.read_csv(file, delimiter=delimiter, low_memory=False)
+    return df
+
+# Membaca file
+dfs = {}
+for file in uploaded_files:
+    df = read_csv_with_detected_delimiter(file)
+    if df is not None:
         dfs[file.name] = df
 
     # Process DbSimpanan
