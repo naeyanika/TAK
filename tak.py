@@ -1,27 +1,52 @@
-import streamlit as st
+import io
+import chardet
+
+dimport streamlit as st
 import pandas as pd
 import numpy as np
 import io
-import chardet
 import csv
 
 st.title('Aplikasi Pengolahan TAK')
 
+# Function to format numbers
+def format_no(no):
+    try:
+        if pd.notna(no):
+            return f'{int(no):02d}.'
+        else:
+            return ''
+    except (ValueError, TypeError):
+        return str(no)
+
+def format_center(center):
+    try:
+        if pd.notna(center):
+            return f'{int(center):03d}'
+        else:
+            return ''
+    except (ValueError, TypeError):
+        return str(center)
+
+def format_kelompok(kelompok):
+    try:
+        if pd.notna(kelompok):
+            return f'{int(kelompok):02d}'
+        else:
+            return ''
+    except (ValueError, TypeError):
+        return str(kelompok)
+
+# Function to sum lists or return 0 if input is not a list
+def sum_lists(x):
+    return sum(x) if isinstance(x, list) else 0
+
 def detect_delimiter(file):
     try:
-        # Baca sampel dari file
-        sample = file.read(1024)
-        file.seek(0)  # Kembalikan pointer file ke awal
-        
-        # Deteksi encoding
-        result = chardet.detect(sample)
-        encoding = result['encoding']
-        
-        # Decode sampel menggunakan encoding yang terdeteksi
-        decoded_sample = sample.decode(encoding)
-        
+        sample = file.read(1024).decode('utf-8')
+        file.seek(0)
         sniffer = csv.Sniffer()
-        dialect = sniffer.sniff(decoded_sample)
+        dialect = sniffer.sniff(sample)
         return dialect.delimiter
     except Exception as e:
         st.error(f"Error saat mendeteksi delimiter: {str(e)}")
@@ -34,18 +59,7 @@ def read_csv_with_detected_delimiter(file):
             st.error("Tidak dapat mendeteksi delimiter. Menggunakan koma sebagai default.")
             delimiter = ','
         
-        # Baca seluruh file
-        content = file.read()
-        file.seek(0)  # Kembalikan pointer file ke awal
-        
-        # Deteksi encoding
-        result = chardet.detect(content)
-        encoding = result['encoding']
-        
-        # Gunakan StringIO untuk membuat objek file-like dari content yang sudah di-decode
-        string_io = io.StringIO(content.decode(encoding))
-        
-        df = pd.read_csv(string_io, delimiter=delimiter, low_memory=False)
+        df = pd.read_csv(file, delimiter=delimiter, low_memory=False, encoding='utf-8')
         return df
     except Exception as e:
         st.error(f"Error saat membaca file CSV: {str(e)}")
