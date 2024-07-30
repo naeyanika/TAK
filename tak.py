@@ -66,6 +66,9 @@ if uploaded_files:
         df2 = dfs['TAK.csv']
         df2.columns = df2.columns.str.strip()
         
+        df2['TRANS. DATE'] = pd.to_datetime(df2['TRANS. DATE'], format='%d/%m/%Y', errors='coerce')
+        df2['ENTRY DATE'] = pd.to_datetime(df2['ENTRY DATE'], format='%d/%m/%Y', errors='coerce')
+        
         st.write("TAK setelah diproses:")
         st.write(df2)
 
