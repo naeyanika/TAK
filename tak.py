@@ -160,7 +160,7 @@ if 'df2_merged' in locals():
     st.write(pivot_table1)
 
 # Download links for pivot tables
-    for name, df in {,
+    for name, df in {
         'TAK.xlsx': pivot_table1
     }.items():
         buffer = io.BytesIO()
