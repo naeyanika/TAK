@@ -7,7 +7,7 @@ import csv
 
 st.title('Aplikasi Pengolahan TAK')
 
-ef detect_delimiter(file):
+def detect_delimiter(file):
     try:
         # Baca sampel dari file
         sample = file.read(1024)
