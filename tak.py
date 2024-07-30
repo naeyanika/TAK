@@ -66,111 +66,113 @@ if uploaded_files:
         df2 = dfs['TAK.csv']
         df2.columns = df2.columns.str.strip()
         
-        df2['TRANS. DATE'] = pd.to_datetime(df2['TRANS. DATE'], format='%d/%m/%Y', errors='coerce')
-        df2['ENTRY DATE'] = pd.to_datetime(df2['ENTRY DATE'], format='%d/%m/%Y', errors='coerce')
-        
-        st.write("TAK setelah diproses:")
-        st.write(df2)
-
+        if 'TRANS. DATE' in df2.columns and 'ENTRY DATE' in df2.columns:
+            df2['TRANS. DATE'] = pd.to_datetime(df2['TRANS. DATE'], format='%d/%m/%Y', errors='coerce')
+            df2['ENTRY DATE'] = pd.to_datetime(df2['ENTRY DATE'], format='%d/%m/%Y', errors='coerce')
+            
+            st.write("TAK setelah diproses:")
+            st.write(df2)
+        else:
+            st.error("Kolom 'TRANS. DATE' atau 'ENTRY DATE' tidak ditemukan dalam TAK.csv.")
+            
     # Merge untuk simpanan
+    if 'df2' in locals() and 'df1' in locals():
         df2_merged = pd.merge(df2, df1[['DOCUMENT NO.', 'ID ANGGOTA', 'NAMA', 'CENTER', 'KELOMPOK', 'HARI', 'JAM', 'SL', 'JENIS SIMPANAN']], on='DOCUMENT NO.', how='left')
 
         st.write("TAK setelah VLOOKUP:")
         st.write(df2_merged)
 
-    #Pivot tabel 
-if 'df2_merged' in locals():
-    df2_merged['TRANS. DATE'] = pd.to_datetime(df2_merged['TRANS. DATE'], format='%d/%m/%Y').dt.strftime('%d%m%Y')
-    df2_merged['DUMMY'] = df2_merged['ID ANGGOTA'] + '' + df2_merged['TRANS. DATE']
+        #Pivot tabel 
+        df2_merged['TRANS. DATE'] = pd.to_datetime(df2_merged['TRANS. DATE'], format='%d/%m/%Y').dt.strftime('%d%m%Y')
+        df2_merged['DUMMY'] = df2_merged['ID ANGGOTA'] + '' + df2_merged['TRANS. DATE']
 
-    pivot_table1 = pd.pivot_table(df2_merged,
-                                  values=['DEBIT', 'CREDIT'],
-                                  index=['ID ANGGOTA', 'DUMMY', 'NAMA', 'CENTER', 'KELOMPOK', 'HARI', 'JAM', 'SL', 'TRANS. DATE'],
-                                  columns='JENIS SIMPANAN',
-                                  aggfunc={'DEBIT': list, 'CREDIT': list},
-                                  fill_value=0)
+        pivot_table1 = pd.pivot_table(df2_merged,
+                                      values=['DEBIT', 'CREDIT'],
+                                      index=['ID ANGGOTA', 'DUMMY', 'NAMA', 'CENTER', 'KELOMPOK', 'HARI', 'JAM', 'SL', 'TRANS. DATE'],
+                                      columns='JENIS SIMPANAN',
+                                      aggfunc={'DEBIT': list, 'CREDIT': list},
+                                      fill_value=0)
 
-    pivot_table1 = pivot_table1.applymap(sum_lists)
-    pivot_table1.columns = [f'{col[0]}_{col[1]}' for col in pivot_table1.columns]
-    pivot_table1.reset_index(inplace=True)
-    pivot_table1['TRANS. DATE'] = pd.to_datetime(pivot_table1['TRANS. DATE'], format='%d%m%Y').dt.strftime('%d/%m/%Y')
+        pivot_table1 = pivot_table1.applymap(sum_lists)
+        pivot_table1.columns = [f'{col[0]}_{col[1]}' for col in pivot_table1.columns]
+        pivot_table1.reset_index(inplace=True)
+        pivot_table1['TRANS. DATE'] = pd.to_datetime(pivot_table1['TRANS. DATE'], format='%d%m%Y').dt.strftime('%d/%m/%Y')
 
-    new_columns5 = [
-        'DEBIT_Simpanan Pensiun',
-        'DEBIT_Simpanan Pokok',
-        'DEBIT_Simpanan Sukarela',
-        'DEBIT_Simpanan Wajib',
-        'DEBIT_Simpanan Hari Raya',
-        'DEBIT_Simpanan Qurban',
-        'DEBIT_Simpanan Sipadan',
-        'DEBIT_Simpanan Khusus',
-        'CREDIT_Simpanan Pensiun',
-        'CREDIT_Simpanan Pokok',
-        'CREDIT_Simpanan Sukarela',
-        'CREDIT_Simpanan Wajib',
-        'CREDIT_Simpanan Hari Raya',
-        'CREDIT_Simpanan Qurban',
-        'CREDIT_Simpanan Sipadan',
-        'CREDIT_Simpanan Khusus'
-    ]
-
-    for col in new_columns5:
-        if col not in pivot_table1.columns:
-            pivot_table1[col] = 0
-
-    pivot_table1['DEBIT_TOTAL'] = pivot_table1.filter(like='DEBIT').sum(axis=1)
-    pivot_table1['CREDIT_TOTAL'] = pivot_table1.filter(like='CREDIT').sum(axis=1)
-
-    rename_dict = {
-        'KELOMPOK': 'KEL',
-        'DEBIT_Simpanan Hari Raya': 'Db Sihara',
-        'DEBIT_Simpanan Pensiun': 'Db Pensiun',
-        'DEBIT_Simpanan Pokok': 'Db Pokok',
-        'DEBIT_Simpanan Sukarela': 'Db Sukarela',
-        'DEBIT_Simpanan Wajib': 'Db Wajib',
-        'DEBIT_Simpanan Qurban': 'Db Qurban',
-        'DEBIT_Simpanan Sipadan': 'Db SIPADAN',
-        'DEBIT_Simpanan Khusus': 'Db Khusus',
-        'DEBIT_TOTAL': 'Db Total',
-        'CREDIT_Simpanan Hari Raya': 'Cr Sihara',
-        'CREDIT_Simpanan Pensiun': 'Cr Pensiun',
-        'CREDIT_Simpanan Pokok': 'Cr Pokok',
-        'CREDIT_Simpanan Sukarela': 'Cr Sukarela',
-        'CREDIT_Simpanan Wajib': 'Cr Wajib',
-        'CREDIT_Simpanan Qurban': 'Cr Qurban',
-        'CREDIT_Simpanan Sipadan': 'Cr SIPADAN',
-        'CREDIT_Simpanan Khusus': 'Cr Khusus',
-        'CREDIT_TOTAL': 'Cr Total'
-    }
-
-    pivot_table1 = pivot_table1.rename(columns=rename_dict)
-    desired_order = [
-            'ID ANGGOTA', 'DUMMY', 'NAMA', 'CENTER', 'KEL', 'HARI', 'JAM', 'SL', 'TRANS. DATE',
-            'Db Qurban', 'Cr Qurban', 'Db Khusus', 'Cr Khusus', 'Db Sihara', 'Cr Sihara', 'Db Pensiun', 'Cr Pensiun', 'Db Pokok', 'Cr Pokok',
-            'Db SIPADAN', 'Cr SIPADAN', 'Db Sukarela', 'Cr Sukarela', 'Db Wajib', 'Cr Wajib', 'Db Total', 'Cr Total'
+        new_columns5 = [
+            'DEBIT_Simpanan Pensiun',
+            'DEBIT_Simpanan Pokok',
+            'DEBIT_Simpanan Sukarela',
+            'DEBIT_Simpanan Wajib',
+            'DEBIT_Simpanan Hari Raya',
+            'DEBIT_Simpanan Qurban',
+            'DEBIT_Simpanan Sipadan',
+            'DEBIT_Simpanan Khusus',
+            'CREDIT_Simpanan Pensiun',
+            'CREDIT_Simpanan Pokok',
+            'CREDIT_Simpanan Sukarela',
+            'CREDIT_Simpanan Wajib',
+            'CREDIT_Simpanan Hari Raya',
+            'CREDIT_Simpanan Qurban',
+            'CREDIT_Simpanan Sipadan',
+            'CREDIT_Simpanan Khusus'
         ]
-# Tambahkan kolom yang mungkin belum ada dalam DataFrame
-    for col in desired_order:
-        if col not in pivot_table1.columns:
-            pivot_table1[col] = 0
 
-    pivot_table1 = pivot_table1[desired_order]
-        
-    st.write("Pivot Table TAK:")
-    st.write(pivot_table1)
+        for col in new_columns5:
+            if col not in pivot_table1.columns:
+                pivot_table1[col] = 0
 
-# Download links for pivot tables
-    for name, df in {
-        'TAK.xlsx': pivot_table1
-    }.items():
-        buffer = io.BytesIO()
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name='Sheet1')
-        buffer.seek(0)
-        st.download_button(
-            label=f"Unduh {name}",
-            data=buffer.getvalue(),
-            file_name=name,
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
+        pivot_table1['DEBIT_TOTAL'] = pivot_table1.filter(like='DEBIT').sum(axis=1)
+        pivot_table1['CREDIT_TOTAL'] = pivot_table1.filter(like='CREDIT').sum(axis=1)
 
+        rename_dict = {
+            'KELOMPOK': 'KEL',
+            'DEBIT_Simpanan Hari Raya': 'Db Sihara',
+            'DEBIT_Simpanan Pensiun': 'Db Pensiun',
+            'DEBIT_Simpanan Pokok': 'Db Pokok',
+            'DEBIT_Simpanan Sukarela': 'Db Sukarela',
+            'DEBIT_Simpanan Wajib': 'Db Wajib',
+            'DEBIT_Simpanan Qurban': 'Db Qurban',
+            'DEBIT_Simpanan Sipadan': 'Db SIPADAN',
+            'DEBIT_Simpanan Khusus': 'Db Khusus',
+            'DEBIT_TOTAL': 'Db Total',
+            'CREDIT_Simpanan Hari Raya': 'Cr Sihara',
+            'CREDIT_Simpanan Pensiun': 'Cr Pensiun',
+            'CREDIT_Simpanan Pokok': 'Cr Pokok',
+            'CREDIT_Simpanan Sukarela': 'Cr Sukarela',
+            'CREDIT_Simpanan Wajib': 'Cr Wajib',
+            'CREDIT_Simpanan Qurban': 'Cr Qurban',
+            'CREDIT_Simpanan Sipadan': 'Cr SIPADAN',
+            'CREDIT_Simpanan Khusus': 'Cr Khusus',
+            'CREDIT_TOTAL': 'Cr Total'
+        }
+
+        pivot_table1 = pivot_table1.rename(columns=rename_dict)
+        desired_order = [
+                'ID ANGGOTA', 'DUMMY', 'NAMA', 'CENTER', 'KEL', 'HARI', 'JAM', 'SL', 'TRANS. DATE',
+                'Db Qurban', 'Cr Qurban', 'Db Khusus', 'Cr Khusus', 'Db Sihara', 'Cr Sihara', 'Db Pensiun', 'Cr Pensiun', 'Db Pokok', 'Cr Pokok',
+                'Db SIPADAN', 'Cr SIPADAN', 'Db Sukarela', 'Cr Sukarela', 'Db Wajib', 'Cr Wajib', 'Db Total', 'Cr Total'
+            ]
+        # Tambahkan kolom yang mungkin belum ada dalam DataFrame
+        for col in desired_order:
+            if col not in pivot_table1.columns:
+                pivot_table1[col] = 0
+
+        pivot_table1 = pivot_table1[desired_order]
+            
+        st.write("Pivot Table TAK:")
+        st.write(pivot_table1)
+
+        # Download links for pivot tables
+        for name, df in {
+            'TAK.xlsx': pivot_table1
+        }.items():
+            buffer = io.BytesIO()
+            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                df.to_excel(writer, index=False, sheet_name='Sheet1')
+            buffer.seek(0)
+            st.download_button(
+                label=f"Unduh {name}",
+                data=buffer.getvalue(),
+                file_name=name,
+                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
