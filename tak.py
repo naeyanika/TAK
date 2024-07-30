@@ -60,8 +60,9 @@ if uploaded_files:
         
         st.write("DbSimpanan setelah diproses:")
         st.write(df1)
+        
     # Process TAK
-        if 'TAK.csv' in dfs:
+    if 'TAK.csv' in dfs:
         df2 = dfs['TAK.csv']
         df2.columns = df2.columns.str.strip()
         
