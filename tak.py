@@ -76,11 +76,18 @@ if uploaded_files:
         st.write("TAK setelah diproses:")
         st.write(df2)
 
+        # Filter pinjaman
+        df3_cleaned = df2.dropna(subset=['DOCUMENT NO.'])
+        df3_filtered = df3_cleaned[df3_cleaned['DOCUMENT NO.'].str.startswith('P')]
+        
         # Merge untuk simpanan
         df2_merged = pd.merge(df2, df1[['DOCUMENT NO.', 'ID ANGGOTA', 'NAMA', 'CENTER', 'KELOMPOK', 'HARI', 'JAM', 'SL', 'JENIS SIMPANAN']], on='DOCUMENT NO.', how='left')
 
         st.write("TAK setelah VLOOKUP:")
         st.write(df2_merged)
+
+        st.write("TAK Pinjaman:")
+        st.write(df3_filtered)
 
         #Pivot tabel 
         df2_merged['TRANS. DATE'] = pd.to_datetime(df2_merged['TRANS. DATE'], format='%d/%m/%Y').dt.strftime('%d%m%Y')
@@ -164,7 +171,8 @@ if uploaded_files:
 
         # Download links for pivot tables
         for name, df in {
-            'TAK.xlsx': pivot_table1
+            'TAK.xlsx': pivot_table1,
+            'TAK_Pinjaman': df3_filtered
         }.items():
             buffer = io.BytesIO()
             with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
