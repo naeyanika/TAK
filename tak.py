@@ -5,7 +5,7 @@ import io
 
 st.title('Aplikasi Pengolahan TAK')
 st.write("""1. Format file harus bernama dan menggunakan ekstensi csv di excelnya pilih save as *CSV UTF-8 berbatas koma atau coma delimited*, sehingga seperti ini : TAK.csv dan DbSimpanan.csv""")
-st.write("""2. File THC di rapikan header dan footer nya sperti pengolahan biasa, dan untuk kolom Debit dan Credit dibiarkan ada 2 dan jangan dihapus!.""")
+st.write("""2. File TAK di rapikan header dan footer nya sperti pengolahan biasa, dan untuk kolom Debit dan Credit dibiarkan ada 2 dan jangan dihapus!.""")
 st.write("""3. File DbSimpanan hapus header nya saja.""")
 
 # Function to format numbers
