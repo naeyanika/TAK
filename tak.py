@@ -13,6 +13,7 @@ st.subheader("Cara pengolahahan:")
 st.write("""1. Format file harus bernama dan menggunakan ekstensi csv di excelnya pilih save as *CSV UTF-8 berbatas koma atau coma delimited*, sehingga seperti ini : TAK.csv dan DbSimpanan.csv""")
 st.write("""2. File TAK di rapikan header dan footer nya sperti pengolahan biasa, dan untuk kolom Debit dan Credit dibiarkan ada 2 dan jangan dihapus!.""")
 st.write("""3. File DbSimpanan hapus header nya saja.""")
+st.write("""4. Gunakan Format **Angka** atau **Numerik** pada **Debit** dan **Credit**.""")
 
 # Function to format numbers
 def format_no(no):
