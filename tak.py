@@ -15,6 +15,7 @@ st.write("""2. File TAK di rapikan header dan footer nya sperti pengolahan biasa
 st.write("""3. File DbSimpanan hapus header nya saja.""")
 st.write("""4. Gunakan Format **Angka** atau **Numerik** pada **Debit** dan **Credit**.""")
 
+
 # Function to format numbers
 def format_no(no):
     try:
